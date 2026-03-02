@@ -1,0 +1,22 @@
+{
+  "livros": [
+    {
+      "id": 1,
+      "nome": "Dom Casmurro",
+      "autor": "Machado de Assis",
+      "disponivel": true
+    },
+    {
+      "id": 2,
+      "nome": "1984",
+      "autor": "George Orwell",
+      "disponivel": true
+    },
+    {
+      "id": 3,
+      "nome": "O Hobbit",
+      "autor": "J.R.R. Tolkien",
+      "disponivel": true
+    }
+  ]
+}
