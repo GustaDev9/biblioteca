@@ -8,8 +8,8 @@ It was built to practice programming logic, modularization and data manipulation
 
 ## 🛠️ Technologies
 
-- Python
-- JSON for data storage
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![JSON](https://img.shields.io/badge/Data-JSON-lightgrey)
 
 ## 🎯 Purpose
 
