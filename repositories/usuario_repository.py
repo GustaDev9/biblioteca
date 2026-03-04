@@ -2,6 +2,13 @@ import json
 from pathlib import Path
 
 from models.usuario import Usuario
+from services.security_service import (
+    SIGNATURE_ALGORITHM,
+    IntegridadeDadosError,
+    assinar_payload,
+    obter_chave_secreta,
+    verificar_assinatura,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ARQUIVO_USUARIOS = BASE_DIR / "storage" / "usuarios.json"
@@ -18,15 +25,41 @@ def _ler_dados_usuarios() -> dict:
     try:
         dados = json.loads(conteudo)
     except json.JSONDecodeError:
-        return {"usuarios": []}
+        raise IntegridadeDadosError(
+            "Arquivo de usuarios corrompido: JSON invalido."
+        ) from None
 
     if not isinstance(dados, dict):
-        return {"usuarios": []}
+        raise IntegridadeDadosError(
+            "Arquivo de usuarios invalido: estrutura inesperada."
+        )
 
-    dados.setdefault("usuarios", [])
-    if not isinstance(dados["usuarios"], list):
-        dados["usuarios"] = []
-    return {"usuarios": dados["usuarios"]}
+    payload = {"usuarios": dados.get("usuarios", [])}
+    if not isinstance(payload["usuarios"], list):
+        raise IntegridadeDadosError(
+            "Arquivo de usuarios invalido: campo 'usuarios' deve ser lista."
+        )
+
+    meta = dados.get("_meta")
+    if not isinstance(meta, dict):
+        raise IntegridadeDadosError(
+            "Integridade comprometida: assinatura de usuarios ausente."
+        )
+
+    sig_alg = meta.get("sig_alg")
+    assinatura = meta.get("sig")
+    if sig_alg != SIGNATURE_ALGORITHM or not isinstance(assinatura, str):
+        raise IntegridadeDadosError(
+            "Integridade comprometida: metadados de assinatura invalidos em usuarios."
+        )
+
+    chave = obter_chave_secreta()
+    if not verificar_assinatura(payload, assinatura, chave):
+        raise IntegridadeDadosError(
+            "Integridade comprometida: usuarios.json foi alterado manualmente."
+        )
+
+    return payload
 
 
 def carregar_usuarios() -> list[Usuario]:
@@ -52,7 +85,7 @@ def carregar_usuarios() -> list[Usuario]:
 
 
 def salvar_usuarios(usuarios: list[Usuario]) -> None:
-    dados = {
+    payload = {
         "usuarios": [
             {
                 "id": usuario.id,
@@ -61,6 +94,15 @@ def salvar_usuarios(usuarios: list[Usuario]) -> None:
             }
             for usuario in usuarios
         ]
+    }
+    chave = obter_chave_secreta()
+    assinatura = assinar_payload(payload, chave)
+    dados = {
+        **payload,
+        "_meta": {
+            "sig_alg": SIGNATURE_ALGORITHM,
+            "sig": assinatura,
+        },
     }
 
     ARQUIVO_USUARIOS.parent.mkdir(parents=True, exist_ok=True)

@@ -18,5 +18,9 @@
       "autor": "J.R.R. Tolkien",
       "disponivel": true
     }
-  ]
+  ],
+  "_meta": {
+    "sig_alg": "hmac_sha256",
+    "sig": "a6ccdb46f8f26deb7e75b9e68cb365f44f10c3448aa7f36e27bf63172f447f6f"
+  }
 }

@@ -3,7 +3,11 @@
     {
       "id": 1,
       "nome": "gusta.adm",
-      "senha": "gusta.adm"
+      "senha": "pbkdf2_sha256$600000$PM7gGQZF32MwlqMJV+jPug==$Ye38TBv87JMVKlgPAQPVlTLWx2u1qIzRMFWwfH9Gjb4="
     }
-  ]
+  ],
+  "_meta": {
+    "sig_alg": "hmac_sha256",
+    "sig": "36f9135a3b59a85f21f2f0677b194753b025a8d993ce204305c421a6fb4c52c2"
+  }
 }

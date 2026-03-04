@@ -4,6 +4,7 @@ from repositories.usuario_repository import (
     gerar_proximo_id_usuario,
     salvar_usuarios,
 )
+from services.security_service import hash_senha, senha_esta_hashada, verificar_senha
 
 
 class UsuarioService:
@@ -22,10 +23,11 @@ class UsuarioService:
             raise ValueError("A senha nao pode ser vazia.")
 
         usuarios = carregar_usuarios()
+        senha_segura = hash_senha(senha)
         novo_usuario = Usuario(
             id_usuario=gerar_proximo_id_usuario(usuarios),
             nome=nome,
-            senha=senha,
+            senha=senha_segura,
         )
         usuarios.append(novo_usuario)
         salvar_usuarios(usuarios)
@@ -45,7 +47,7 @@ class UsuarioService:
             return False, "Usuario nao encontrado."
 
         usuario.nome = nome
-        usuario.senha = senha
+        usuario.senha = hash_senha(senha)
         salvar_usuarios(usuarios)
         return True, "Conta atualizada com sucesso."
 
@@ -65,8 +67,15 @@ class UsuarioService:
         if usuario is None:
             return False, "Usuario nao encontrado.", None
 
-        if usuario.senha != senha:
-            return False, "Senha invalida.", None
+        if senha_esta_hashada(usuario.senha):
+            if not verificar_senha(senha, usuario.senha):
+                return False, "Senha invalida.", None
+        else:
+            # Migra senha legada em texto puro para hash no primeiro login valido.
+            if usuario.senha != senha:
+                return False, "Senha invalida.", None
+            usuario.senha = hash_senha(senha)
+            salvar_usuarios(usuarios)
 
         return True, "Acesso liberado.", usuario
 
